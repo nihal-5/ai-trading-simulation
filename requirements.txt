@@ -1,0 +1,22 @@
+# Core
+openai>=1.0.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+
+# Market Data
+polygon-api-client>=1.0.0
+
+# Dashboard
+gradio>=4.0.0
+plotly>=5.0.0
+pandas>=2.0.0
+
+# Database
+aiosqlite
+
+# HTTP
+requests
+
+# Optional: For advanced features
+# langchain
+# langchain-community
