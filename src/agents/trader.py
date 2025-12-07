@@ -6,13 +6,12 @@ from typing import List, Dict, Any
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from core.accounts import Account
-from core.market import get_share_price
-from core.database import write_log
-from agents.templates import trader_instructions, trade_message, rebalance
-
-_message
+# Fix imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from src.core.accounts import Account
+from src.core.market import get_share_price
+from src.core.database import write_log
+from src.agents.templates import trader_instructions, trade_message, rebalance_message
 
 load_dotenv()
 
