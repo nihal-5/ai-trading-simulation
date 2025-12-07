@@ -1,4 +1,4 @@
-"""Gradio dashboard for AI trading simulation"""
+"""Enhanced Gradio dashboard with all features from course project"""
 import gradio as gr
 import pandas as pd
 import plotly.express as px
@@ -27,7 +27,19 @@ class TraderView:
     def get_portfolio_chart(self):
         """Generate portfolio value time series chart"""
         if not self.account.portfolio_value_time_series:
-            return go.Figure()
+            fig = go.Figure()
+            fig.add_annotation(
+                text="No trading data yet",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False,
+                font=dict(size=16, color="white")
+            )
+            fig.update_layout(
+                height=250,
+                paper_bgcolor="#2d2d2d",
+                plot_bgcolor="#1a1a1a",
+            )
+            return fig
         
         df = pd.DataFrame(
             self.account.portfolio_value_time_series,
@@ -37,18 +49,18 @@ class TraderView:
         
         fig = px.line(df, x="datetime", y="value", title=f"{self.name}'s Portfolio")
         fig.update_layout(
-            height=300,
-            margin=dict(l=40, r=20, t=40, b=40),
+            height=250,
+            margin=dict(l=30, r=10, t=30, b=30),
             xaxis_title=None,
             yaxis_title="Value ($)",
-            paper_bgcolor="#2d2d2d",  # Dark background
-            plot_bgcolor="#1a1a1a",   # Darker plot area
-            font=dict(color="white", size=14),  # White text
-            title_font=dict(color="white", size=18)  # White title
+            paper_bgcolor="#2d2d2d",
+            plot_bgcolor="#1a1a1a",
+            font=dict(color="white", size=12),
+            title_font=dict(color="white", size=14)
         )
-        fig.update_xaxes(tickformat="%m/%d %H:%M", tickangle=45, gridcolor="#444")
-        fig.update_yaxes(tickformat="$,.0f", gridcolor="#444")
-        fig.update_traces(line_color="#00ff88")  # Bright green line
+        fig.update_xaxes(tickformat="%m/%d %H:%M", tickangle=45, gridcolor="#444", tickfont=dict(size=10))
+        fig.update_yaxes(tickformat="$,.0f", gridcolor="#444", tickfont=dict(size=10))
+        fig.update_traces(line_color="#00ff88", line_width=2)
         return fig
     
     def get_portfolio_value_html(self):
@@ -56,25 +68,31 @@ class TraderView:
         portfolio_value = self.account.calculate_portfolio_value()
         pnl = self.account.calculate_profit_loss(portfolio_value)
         
-        color = "green" if pnl >= 0 else "red"
-        emoji = "⬆" if pnl >= 0 else "⬇"
+        color = "#10b981" if pnl >= 0 else "#ef4444"
+        emoji = "📈" if pnl >= 0 else "📉"
         
         return f"""
-        <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px;'>
-            <h2 style='color: white; margin: 0;'>{self.name}</h2>
-            <p style='color: #ccc; margin: 5px 0;'>{self.model_name}</p>
-            <h1 style='color: white; margin: 10px 0;'>${portfolio_value:,.2f}</h1>
-            <p style='color: {color}; font-size: 24px; margin: 0;'>{emoji} ${abs(pnl):,.2f} ({(pnl/10000)*100:+.1f}%)</p>
+        <div style='text-align: center; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; margin-bottom: 10px;'>
+            <h3 style='color: white; margin: 0; font-size: 18px;'>{self.name}</h3>
+            <p style='color: #ddd; margin: 3px 0; font-size: 12px;'>{self.model_name}</p>
+            <h2 style='color: white; margin: 8px 0; font-size: 24px;'>${portfolio_value:,.2f}</h2>
+            <p style='color: {color}; font-size: 16px; margin: 0;'>{emoji} ${abs(pnl):,.2f} ({(pnl/10000)*100:+.1f}%)</p>
         </div>
         """
     
     def get_holdings_df(self):
         """Get holdings as DataFrame"""
         if not self.account.holdings:
-            return pd.DataFrame(columns=["Symbol", "Quantity"])
+            return pd.DataFrame(columns=["Symbol", "Shares"])
         
+        from src.core.market import get_share_price
         return pd.DataFrame([
-            {"Symbol": symbol, "Quantity": qty}
+            {
+                "Symbol": symbol, 
+                "Shares": qty,
+                "Price": f"${get_share_price(symbol):.2f}",
+                "Value": f"${get_share_price(symbol) * qty:,.2f}"
+            }
             for symbol, qty in self.account.holdings.items()
         ])
     
@@ -82,21 +100,20 @@ class TraderView:
         """Get recent transactions"""
         transactions = self.account.list_transactions()
         if not transactions:
-            return pd.DataFrame(columns=["Time", "Symbol", "Qty", "Price", "Rationale"])
+            return pd.DataFrame(columns=["Time", "Action", "Symbol", "Qty", "Price"])
         
-        # Show last 10
         recent = transactions[-10:]
         return pd.DataFrame([{
             "Time": t["timestamp"].split()[1] if " " in t["timestamp"] else t["timestamp"],
+            "Action": "BUY" if t["quantity"] > 0 else "SELL",
             "Symbol": t["symbol"],
-            "Qty": t["quantity"],
+            "Qty": abs(t["quantity"]),
             "Price": f"${t['price']:.2f}",
-            "Rationale": t["rationale"][:50] + "..." if len(t["rationale"]) > 50 else t["rationale"]
         } for t in recent])
     
     def get_logs_html(self):
         """Get colored activity logs"""
-        logs = read_log(self.name, last_n=15)
+        logs = read_log(self.name, last_n=20)
         
         colors = {
             "agent": "#00bcd4",
@@ -106,16 +123,16 @@ class TraderView:
             "error": "#ff5722"
         }
         
-        html = "<div style='height: 200px; overflow-y: auto; background: #1a1a1a; padding: 10px; border-radius: 5px;'>"
+        html = "<div style='height: 150px; overflow-y: auto; background: #1a1a1a; padding: 8px; border-radius: 5px; font-family: monospace;'>"
         for timestamp, log_type, message in logs:
             color = colors.get(log_type, "#ffffff")
-            html += f"<p style='color: {color}; margin: 3px 0; font-size: 12px;'>{timestamp} [{log_type}] {message}</p>"
+            html += f"<p style='color: {color}; margin: 2px 0; font-size: 11px;'>{timestamp} [{log_type}] {message[:80]}</p>"
         html += "</div>"
         return html
 
 
 def create_dashboard():
-    """Create the Gradio dashboard"""
+    """Create the enhanced Gradio dashboard"""
     
     traders = [
         TraderView("Warren", "GPT-4o-mini"),
@@ -129,118 +146,141 @@ def create_dashboard():
         title="AI Trading Simulation",
         css="""
         .gradio-container {background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);}
-        .markdown h1, .markdown h2, .markdown h3 {color: white !important;}
+        .markdown h1, .markdown h2, .markdown h3, .markdown h4 {color: white !important;}
         .markdown p {color: #cccccc !important;}
-        
-        /* Make all text visible */
         body, p, span, div, label {color: #ffffff !important;}
-        
-        /* Chart titles and labels */
         .plotly .gtitle, .plotly text {fill: white !important; color: white !important;}
-        
-        /* Table text */
         .dataframe {color: #ffffff !important;}
         table {color: #ffffff !important;}
-        
-        /* Button text */
         button {color: #ffffff !important;}
-        
-        /* Tab text */
         .tab-nav button {color: #ffffff !important;}
         """
     ) as dashboard:
         
-        gr.Markdown(
-            """
-            # 🏦 AI Trading Simulation Dashboard
-            ### Real-time monitoring of 4 AI traders with different strategies
-            """,
-            elem_classes=["markdown"]
-        )
+        gr.Markdown("# 🏦 AI Trading Simulation Dashboard\n### Multi-agent trading with GPT-4, Gemini & Deepseek")
         
-        # Trading control section
+        # Control panel
         with gr.Row():
-            with gr.Column(scale=3):
-                trading_status = gr.Markdown("**Status:** Ready to trade", elem_classes=["markdown"])
+            with gr.Column(scale=2):
+                trading_status = gr.Markdown("**Status:** Ready to trade")
             with gr.Column(scale=1):
                 run_trading_btn = gr.Button("▶️ Run Trading Session", variant="primary", size="lg")
+            with gr.Column(scale=1):
+                auto_refresh_toggle = gr.Checkbox(label="Auto-Refresh (30s)", value=False)
         
         # Trading session handler
         def run_trading_session():
             import asyncio
-            import sys
-            import os
-            
-            sys.path.insert(0, os.path.dirname(__file__))
             from trading_floor import run_trading_session as execute_trading
             
             try:
-                yield "**Status:** 🔄 Trading session in progress... (this takes ~2 minutes)"
+                yield "**Status:** 🔄 Trading in progress... (~2 min)"
                 asyncio.run(execute_trading())
-                yield "**Status:** ✅ Trading complete! Click refresh buttons on trader tabs to see results."
+                yield "**Status:** ✅ Complete! Data updated. Refresh to see results."
             except Exception as e:
                 yield f"**Status:** ❌ Error: {str(e)}"
         
-        run_trading_btn.click(
-            fn=run_trading_session,
-            outputs=trading_status
-        )
+        run_trading_btn.click(fn=run_trading_session, outputs=trading_status)
         
-        # Create tabs for each trader
+        # All traders in tabs
         with gr.Tabs():
+            trader_components = {}
+            
             for trader in traders:
                 with gr.Tab(trader.name):
-                    with gr.Row():
-                        portfolio_html = gr.HTML(trader.get_portfolio_value_html())
+                    portfolio_html = gr.HTML(trader.get_portfolio_value_html())
+                    chart = gr.Plot(trader.get_portfolio_chart())
+                    logs_html = gr.HTML(trader.get_logs_html())
                     
                     with gr.Row():
-                        chart = gr.Plot(trader.get_portfolio_chart())
-                    
-                    with gr.Row():
-                        logs_html = gr.HTML(trader.get_logs_html())
-                    
-                    with gr.Row():
-                        with gr.Column():
-                            holdings_table = gr.Dataframe(
-                                trader.get_holdings_df(),
-                                label="Current Holdings",
-                                interactive=False
-                            )
-                        
-                        with gr.Column():
-                            transactions_table = gr.Dataframe(
-                                trader.get_transactions_df(),
-                                label="Recent Transactions",
-                                interactive=False
-                            )
-                    
-                    # Auto-refresh every 30 seconds
-                    def refresh_trader(trader=trader):
-                        trader.reload()
-                        return [
-                            trader.get_portfolio_value_html(),
-                            trader.get_portfolio_chart(),
-                            trader.get_logs_html(),
+                        holdings_table = gr.Dataframe(
                             trader.get_holdings_df(),
-                            trader.get_transactions_df()
+                            label="Holdings",
+                            interactive=False
+                        )
+                        transactions_table = gr.Dataframe(
+                            trader.get_transactions_df(),
+                            label="Recent Trades",
+                            interactive=False
+                        )
+                    
+                    refresh_btn = gr.Button("🔄 Refresh Data", size="sm")
+                    
+                    def refresh_trader(t=trader):
+                        t.reload()
+                        return [
+                            t.get_portfolio_value_html(),
+                            t.get_portfolio_chart(),
+                            t.get_logs_html(),
+                            t.get_holdings_df(),
+                            t.get_transactions_df()
                         ]
                     
-                    refresh_btn = gr.Button("🔄 Refresh", size="sm")
                     refresh_btn.click(
-                        refresh_trader,
+                       refresh_trader,
                         outputs=[portfolio_html, chart, logs_html, holdings_table, transactions_table]
                     )
+                    
+                    trader_components[trader.name] = {
+                        "portfolio": portfolio_html,
+                        "chart": chart,
+                        "logs": logs_html,
+                        "holdings": holdings_table,
+                        "transactions": transactions_table,
+                        "trader": trader
+                    }
         
-        gr.Markdown(
-            """
-            ---
-            **Strategy Overview:**
-            - **Warren (GPT-4)**: Value investing, long-term holds
-            - **George (Gemini)**: Momentum trading, quick profits
-            - **Ray (Deepseek)**: Systematic quantitative approach
-            - **Cathie (GPT-4)**: Growth & innovation focus
-            """
+        # Auto-refresh logic
+        def auto_refresh_all():
+            results = []
+            for trader_name, components in trader_components.items():
+                t = components["trader"]
+                t.reload()
+                results.extend([
+                    t.get_portfolio_value_html(),
+                    t.get_portfolio_chart(),
+                    t.get_logs_html(),
+                    t.get_holdings_df(),
+                    t.get_transactions_df()
+                ])
+            return results
+        
+        # Timer for auto-refresh
+        refresh_timer = gr.Timer(value=30, active=False)
+        
+        def toggle_auto_refresh(enabled):
+            return gr.Timer(active=enabled)
+        
+        auto_refresh_toggle.change(
+            fn=toggle_auto_refresh,
+            inputs=auto_refresh_toggle,
+            outputs=refresh_timer
         )
+        
+        all_outputs = []
+        for components in trader_components.values():
+            all_outputs.extend([
+                components["portfolio"],
+                components["chart"],
+                components["logs"],
+                components["holdings"],
+                components["transactions"]
+            ])
+        
+        refresh_timer.tick(
+            fn=auto_refresh_all,
+            outputs=all_outputs,
+            show_progress="hidden"
+        )
+        
+        gr.Markdown("""
+---
+**Strategy Overview:**
+- **Warren (GPT-4)**: Value investing → undervalued stocks, dividends
+- **George (Gemini)**: Momentum → trending stocks, quick profits  
+- **Ray (Deepseek)**: Systematic → technical indicators, rebalancing
+- **Cathie (GPT-4)**: Growth & Innovation → disruptive tech, high risk/reward
+        """)
     
     return dashboard
 
