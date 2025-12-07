@@ -41,12 +41,14 @@ class TraderView:
             margin=dict(l=40, r=20, t=40, b=40),
             xaxis_title=None,
             yaxis_title="Value ($)",
-            paper_bgcolor="#1a1a1a",
-            plot_bgcolor="#2d2d2d",
-            font=dict(color="white")
+            paper_bgcolor="#2d2d2d",  # Dark background
+            plot_bgcolor="#1a1a1a",   # Darker plot area
+            font=dict(color="white", size=14),  # White text
+            title_font=dict(color="white", size=18)  # White title
         )
-        fig.update_xaxes(tickformat="%m/%d %H:%M", tickangle=45)
-        fig.update_yaxes(tickformat="$,.0f")
+        fig.update_xaxes(tickformat="%m/%d %H:%M", tickangle=45, gridcolor="#444")
+        fig.update_yaxes(tickformat="$,.0f", gridcolor="#444")
+        fig.update_traces(line_color="#00ff88")  # Bright green line
         return fig
     
     def get_portfolio_value_html(self):
@@ -129,6 +131,22 @@ def create_dashboard():
         .gradio-container {background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);}
         .markdown h1, .markdown h2, .markdown h3 {color: white !important;}
         .markdown p {color: #cccccc !important;}
+        
+        /* Make all text visible */
+        body, p, span, div, label {color: #ffffff !important;}
+        
+        /* Chart titles and labels */
+        .plotly .gtitle, .plotly text {fill: white !important; color: white !important;}
+        
+        /* Table text */
+        .dataframe {color: #ffffff !important;}
+        table {color: #ffffff !important;}
+        
+        /* Button text */
+        button {color: #ffffff !important;}
+        
+        /* Tab text */
+        .tab-nav button {color: #ffffff !important;}
         """
     ) as dashboard:
         
