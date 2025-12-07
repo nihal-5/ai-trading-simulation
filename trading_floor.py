@@ -13,12 +13,12 @@ load_dotenv()
 USE_MANY_MODELS = os.getenv("USE_MANY_MODELS", "false").lower() == "true"
 RUN_EVERY_N_MINUTES = int(os.getenv("RUN_EVERY_N_MINUTES", "60"))
 
-# Trader configurations
+# Trader configurations - using 3 different AI models
 TRADERS = [
     {"name": "Warren", "model": "openai/gpt-4o-mini"},
-    {"name": "George", "model": "deepseek/deepseek-chat"},
-    {"name": "Ray", "model": "openai/gpt-4o-mini"},
-    {"name": "Cathie", "model": "deepseek/deepseek-chat"}
+    {"name": "George", "model": "google/gemini-2.0-flash-exp"},  
+    {"name": "Ray", "model": "deepseek/deepseek-chat"},
+    {"name": "Cathie", "model": "openai/gpt-4o-mini"}
 ]
 
 

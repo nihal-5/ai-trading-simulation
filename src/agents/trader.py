@@ -62,12 +62,21 @@ class SimpleTrader:
             self.account.save()
         
         # Setup OpenAI client based on model
-        if "deepseek" in model_name.lower():
+        if "gemini" in model_name.lower() or "google" in model_name.lower():
+            # Use direct Gemini API
+            self.client = AsyncOpenAI(
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                api_key=os.getenv("GOOGLE_API_KEY")
+            )
+            self.model_name = "gemini-2.0-flash-exp"
+        elif "deepseek" in model_name.lower() or "/" in model_name:
+            # Use OpenRouter for all other models
             self.client = AsyncOpenAI(
                 base_url="https://openrouter.ai/api/v1",
                 api_key=os.getenv("OPENROUTER_API_KEY")
             )
         else:
+            # Fallback to OpenRouter
             self.client = AsyncOpenAI(
                 base_url="https://openrouter.ai/api/v1",
                 api_key=os.getenv("OPENROUTER_API_KEY")
