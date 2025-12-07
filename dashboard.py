@@ -158,6 +158,34 @@ def create_dashboard():
             elem_classes=["markdown"]
         )
         
+        # Trading control section
+        with gr.Row():
+            with gr.Column(scale=3):
+                trading_status = gr.Markdown("**Status:** Ready to trade", elem_classes=["markdown"])
+            with gr.Column(scale=1):
+                run_trading_btn = gr.Button("▶️ Run Trading Session", variant="primary", size="lg")
+        
+        # Trading session handler
+        def run_trading_session():
+            import asyncio
+            import sys
+            import os
+            
+            sys.path.insert(0, os.path.dirname(__file__))
+            from trading_floor import run_trading_session as execute_trading
+            
+            try:
+                yield "**Status:** 🔄 Trading session in progress... (this takes ~2 minutes)"
+                asyncio.run(execute_trading())
+                yield "**Status:** ✅ Trading complete! Click refresh buttons on trader tabs to see results."
+            except Exception as e:
+                yield f"**Status:** ❌ Error: {str(e)}"
+        
+        run_trading_btn.click(
+            fn=run_trading_session,
+            outputs=trading_status
+        )
+        
         # Create tabs for each trader
         with gr.Tabs():
             for trader in traders:
