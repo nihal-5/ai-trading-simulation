@@ -127,6 +127,8 @@ def create_dashboard():
         title="AI Trading Simulation",
         css="""
         .gradio-container {background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);}
+        .markdown h1, .markdown h2, .markdown h3 {color: white !important;}
+        .markdown p {color: #cccccc !important;}
         """
     ) as dashboard:
         
