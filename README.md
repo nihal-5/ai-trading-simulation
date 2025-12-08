@@ -2,6 +2,12 @@
 
 > Watch 4 different AI models compete against each other as stock traders. Each has its own personality and strategy.
 
+## 🚀 Live Demo
+
+**[View in AI Portfolio Dashboard](https://unharmable-threadlike-ruth.ngrok-free.dev)** | **[Direct Access](https://unharmable-threadlike-ruth.ngrok-free.dev:8001)**
+
+> Part of **[Nihal's AI Portfolio](https://unharmable-threadlike-ruth.ngrok-free.dev)** - Unified dashboard featuring 5 cutting-edge AI services
+
 I built this because I was curious: if you gave AI traders different strategies and let them loose on the stock market, who would win? Turns out, watching Warren (the value investor) battle against Cathie (the growth/disruption trader) is pretty fun.
 
 ## What is this?
@@ -62,7 +68,7 @@ Without Polygon, it'll use random simulated prices. Still works fine for testing
 python dashboard.py
 ```
 
-Open http://localhost:7860 in your browser.
+Open https://unharmable-threadlike-ruth.ngrok-free.dev:7860 in your browser.
 
 **To make the traders trade:**
 - Click the big "▶️ Run Trading Session" button in the dashboard
