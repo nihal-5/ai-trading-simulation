@@ -108,6 +108,30 @@ After a few trading sessions:
 
 The interesting part isn't who's winning, it's watching their different approaches play out.
 
+## Troubleshooting
+
+**Dashboard won't start:**
+- Make sure you have all dependencies: `pip install -r requirements.txt`
+- Check that port 7860 isn't already in use
+- Verify Python 3.8+ is installed
+
+**API errors:**
+- Double-check your API keys in `.env` file
+- OpenAI key format: `sk-...` (required)
+- Polygon key (optional, will use simulated prices without it)
+- Restart dashboard after updating `.env`
+
+**Traders not responding:**
+- First run takes longer as models initialize
+- Check logs for specific error messages  
+- Verify API quota hasn't been exceeded
+- Try running `test_apis.py` to diagnose
+
+**"Module not found" errors:**
+- Run `pip install -r requirements.txt` again
+- Try creating a fresh virtual environment
+- Ensure you're in the right directory
+
 ## Future Ideas
 
 - Add more traders with different strategies
