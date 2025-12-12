@@ -161,3 +161,5 @@ Open an issue or find me [@nihal-5](https://github.com/nihal-5)
 ---
 
 **Note:** This is a simulation. Don't use it for real trading. The AI traders are autonomous and will make decisions you might not agree with. That's the whole point.
+
+## Acknowledgments
